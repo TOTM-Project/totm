@@ -11,7 +11,7 @@
 | Business Goal | Generate a personalized running training plan using AI based on user profile |
 
 ## Summary
-An AI specialized in running coaching analyzes the user's stored profile data and generates a tailored training program. This occurs automatically after the user's data is first saved (UC-002). The plan must match the user's experience level, goals, and available training days.
+An AI specialized in running coaching analyzes the user's full profile data (athlete profile, goals, running background, current training, health, recovery, trail specifics, strengths and limits) and generates a tailored training program. This occurs automatically after the user's data is first saved (UC-002). The plan must account for the user's complete context to produce an appropriate and safe program.
 
 ## Actors
 - **Primary actor**: System
@@ -38,14 +38,18 @@ Successful initial data persistence in UC-002.
 - No incomplete plan is persisted
 
 ## Input Data Schema
-| Field | Type | Required | Validation Rules | Example |
-|-------|------|----------|-----------------|---------|
-| age | Integer | Yes | From user profile | 32 |
-| weight | Float | Yes | From user profile | 72.5 |
-| sex | Enum | Yes | From user profile | Male |
-| running_experience | Enum | Yes | From user profile | Intermediate |
-| running_goal | String | Yes | From user profile | Run a marathon in under 4 hours |
-| training_days | Array of Enum | Yes | From user profile | [Monday, Wednesday, Saturday] |
+The AI receives the full user profile as defined in UC-001/UC-002, organized in the following sections:
+
+| Section | Key Fields Used | Purpose |
+|---------|----------------|--------|
+| Athlete Profile | age, sex, location, timezone | Personalize plan intensity and scheduling |
+| Goal and Timeline | main_goal_event, goal_distance, goal_date, goal_type, goal_terrain | Define plan target and periodization |
+| Running Background | years_running, years_trail_ultra, race_results, weekly_mileage, easy_run_pace, effort_tracking_method | Assess current fitness level |
+| Current Training | recent_training_summary, training_days_per_week, workout_types, preferred_long_run_day, unavailable_days, limited_time_days | Structure weekly plan layout |
+| Health and Injury | current_pain_concerns, past_injuries, medical_clearance | Apply safety constraints |
+| Recovery and Lifestyle | avg_sleep_hours, stress_level, recovery_ability, life_constraints | Calibrate training load |
+| Trail and Ultra Specifics | trail_access, hill_access, altitude_exposure, technical_terrain_experience, hiking_ability_steep, downhill_tolerance | Include terrain-specific sessions |
+| Strengths and Limits | strengths, weaknesses, improvement_priorities | Focus plan on development areas |
 
 ## Happy Path (Step-by-Step)
 ```
@@ -92,11 +96,13 @@ Successful initial data persistence in UC-002.
 ```
 
 ## Business Rules
-- **BR1**: The training plan must only schedule sessions on the user's selected training days.
+- **BR1**: The training plan must only schedule sessions on the user's available days (respecting `unavailable_days` and `training_days_per_week`).
 - **BR2**: The plan must respect progressive overload principles (gradual increase in volume).
-- **BR3**: The plan must be appropriate for the user's declared experience level.
+- **BR3**: The plan must be appropriate for the user's running background and current training level.
 - **BR4**: Each session must have a clear type, target duration, and description.
 - **BR5**: The initial plan should cover at least 4 weeks.
+- **BR6**: The plan must respect the user's health constraints (injuries, medical clearance).
+- **BR7**: The plan should include terrain-specific sessions if the goal involves trail/elevation.
 
 ## MVP Scope
 ### Included
@@ -123,14 +129,16 @@ Successful initial data persistence in UC-002.
 
 ## Acceptance Criteria
 - [ ] GIVEN a completed user profile WHEN the AI generates a plan THEN the plan contains at least 4 weeks of training sessions
-- [ ] GIVEN the user selected 3 training days WHEN a plan is generated THEN sessions are only scheduled on those 3 days
-- [ ] GIVEN a beginner user WHEN a plan is generated THEN session intensity and volume are appropriate for beginners
+- [ ] GIVEN the user has 3 available training days per week WHEN a plan is generated THEN sessions are only scheduled on available days (excluding `unavailable_days`)
+- [ ] GIVEN a user with low running experience (years_running < 2) WHEN a plan is generated THEN session intensity and volume are conservative
 - [ ] GIVEN the AI service is unavailable WHEN plan generation is triggered THEN the user sees an error message and can retry
 - [ ] GIVEN a generated plan WHEN it is persisted THEN each session has a date, type, duration, and description
+- [ ] GIVEN a user with current injuries WHEN a plan is generated THEN sessions avoid aggravating the declared condition
+- [ ] GIVEN a trail goal with significant elevation WHEN a plan is generated THEN it includes hill/elevation-specific sessions
 
 ## Success Metrics
 - Plan generated successfully on first attempt in > 90% of cases
-- Generated plans align with the user's stated goal and experience level
+- Generated plans align with the user's stated goal, running background, and constraints
 
 ## Open Questions
 - Which LLM provider/model should be used?

@@ -1,1 +1,5 @@
+// Ignore all draft.md files. For development purpose only.
 */draft.md
+
+// Ignore all .fit files. For development purpose only.
+*.fit

@@ -90,7 +90,7 @@ The user navigates to the "Training" section from the dashboard (UC-004).
 ## Business Rules
 - **BR1**: Only future (non-completed) sessions are shown in the training calendar.
 - **BR2**: The calendar defaults to the current week view.
-- **BR3**: Sessions must be displayed on the correct day matching the user's selected training days.
+- **BR3**: Sessions must be displayed on the correct day matching the user's available training schedule (from profile's Current Training section).
 - **BR4**: The user cannot manually edit sessions from this view (modifications go through AI chat — UC-007).
 
 ## MVP Scope

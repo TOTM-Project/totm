@@ -42,7 +42,7 @@ The system uses AI to analyze the user's recent training results and/or direct c
 ## Input Data Schema
 | Field | Type | Required | Validation Rules | Example |
 |-------|------|----------|-----------------|---------|
-| user_profile | Object | Yes | From database | {age, weight, experience, goal...} |
+| user_profile | Object | Yes | Full profile from UC-001/UC-002 (athlete profile, goal, running background, current training, health, recovery, trail specifics, strengths) | {full_name, goal_date, weekly_mileage, stress_level, ...} |
 | training_history | Array | Yes | Completed sessions with metrics | [{session, metrics, effort}...] |
 | current_plan | Array | Yes | Remaining planned sessions | [{date, type, duration}...] |
 | user_message | String | No | Max 2000 chars (for chat trigger) | "I want to increase my long run distance" |
@@ -102,7 +102,7 @@ The system uses AI to analyze the user's recent training results and/or direct c
 
 ## Business Rules
 - **BR1**: Completed sessions must never be modified during adaptation.
-- **BR2**: Adapted sessions must respect the user's available training days.
+- **BR2**: Adapted sessions must respect the user's available training days (from `training_days_per_week`, `unavailable_days`, `preferred_long_run_day`).
 - **BR3**: The AI must consider the user's perceived effort data, not just objective metrics.
 - **BR4**: Chat-triggered adaptations must still validate against safety constraints (no unreasonable volumes).
 - **BR5**: The system must keep a record of plan versions for potential rollback.
@@ -135,7 +135,7 @@ The system uses AI to analyze the user's recent training results and/or direct c
 - [ ] GIVEN a user chat message requesting a change WHEN adaptation runs THEN the plan reflects the user's request
 - [ ] GIVEN high perceived fatigue in recent sessions WHEN adaptation runs THEN the AI reduces upcoming session intensity
 - [ ] GIVEN the AI service is unavailable WHEN adaptation is triggered THEN the current plan is preserved and the user is informed
-- [ ] GIVEN adapted sessions WHEN they are persisted THEN they respect the user's available training days
+- [ ] GIVEN adapted sessions WHEN they are persisted THEN they respect the user's schedule constraints (unavailable_days, training_days_per_week, limited_time_days)
 
 ## Success Metrics
 - Plan adaptation completes in < 30 seconds
